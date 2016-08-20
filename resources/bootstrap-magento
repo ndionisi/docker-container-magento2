@@ -1,0 +1,61 @@
+#!/bin/bash
+set -e
+
+MAGENTO_ADMIN_FIRSTNAME="${MAGENTO_ADMIN_FIRSTNAME:-Admin}"
+MAGENTO_ADMIN_LASTNAME="${MAGENTO_ADMIN_LASTNAME:-User}"
+MAGENTO_ADMIN_EMAIL="${MAGENTO_ADMIN_EMAIL:-admin@example.com}"
+MAGENTO_ADMIN_USER="${MAGENTO_ADMIN_USER:-admin}"
+MAGENTO_ADMIN_PASSWORD="${MAGENTO_ADMIN_PASSWORD:-magento2}"
+MAGENTO_DB_HOST="${MAGENTO_DB_HOST:-mysql}"
+MAGENTO_DB_NAME="${MAGENTO_DB_NAME:-magento2}"
+MAGENTO_DB_USER="${MAGENTO_DB_USER:-magento2}"
+MAGENTO_DB_PASSWORD="${MAGENTO_DB_PASSWORD:-magento2}"
+MAGENTO_BACKEND_FRONTNAME="${MAGENTO_BACKEND_FRONTNAME:-admin}"
+
+function addAdditionalParamIfDefined() {
+    if [[ -n "$1" ]]
+    then
+        INSTALL_COMMAND_LINE="$INSTALL_COMMAND_LINE --$2='$1'"
+    fi
+}
+
+php -f /opt/checkDatabaseState.php "$MAGENTO_DB_HOST" "$MAGENTO_DB_USER" "$MAGENTO_DB_PASSWORD" || exit 1;
+
+if [[ ! -f "/var/www/html/magento2/installed.log" ]]
+then
+    INSTALL_COMMAND_LINE="magento setup:install"
+    addAdditionalParamIfDefined "$MAGENTO_ADMIN_FIRSTNAME" "admin-firstname"
+    addAdditionalParamIfDefined "$MAGENTO_ADMIN_LASTNAME" "admin-lastname"
+    addAdditionalParamIfDefined "$MAGENTO_ADMIN_EMAIL" "admin-email"
+    addAdditionalParamIfDefined "$MAGENTO_ADMIN_USER" "admin-user"
+    addAdditionalParamIfDefined "$MAGENTO_ADMIN_PASSWORD" "admin-password"
+    addAdditionalParamIfDefined "$MAGENTO_BASE_URL" "base-url"
+    addAdditionalParamIfDefined "$MAGENTO_DB_HOST" "db-host"
+    addAdditionalParamIfDefined "$MAGENTO_DB_NAME" "db-name"
+    addAdditionalParamIfDefined "$MAGENTO_DB_USER" "db-user"
+    addAdditionalParamIfDefined "$MAGENTO_DB_PASSWORD" "db-password"
+    addAdditionalParamIfDefined "$MAGENTO_BACKEND_FRONTNAME" "backend-frontname"
+    addAdditionalParamIfDefined "$MAGENTO_DB_PREFIX" "db-prefix"
+    addAdditionalParamIfDefined "$MAGENTO_LANGUAGE" "language"
+    addAdditionalParamIfDefined "$MAGENTO_CURRENCY" "currency"
+    addAdditionalParamIfDefined "$MAGENTO_TIMEZONE" "timezone"
+    addAdditionalParamIfDefined "$MAGENTO_USE_REWRITES" "use-rewrites"
+    addAdditionalParamIfDefined "$MAGENTO_USE_SECURE" "use-secure"
+    addAdditionalParamIfDefined "$MAGENTO_BASE_URL_SECURE" "base-url-secure"
+    addAdditionalParamIfDefined "$MAGENTO_USE_SECURE_ADMIN" "use-secure-admin"
+    addAdditionalParamIfDefined "$MAGENTO_ADMIN_USE_SECURITY_KEY" "admin-use-security-key"
+    addAdditionalParamIfDefined "$MAGENTO_SESSION_SAVE" "session-save"
+    addAdditionalParamIfDefined "$MAGENTO_KEY" "key"
+    addAdditionalParamIfDefined "$MAGENTO_CLEANUP_DATABASE" "cleanup-database"
+    addAdditionalParamIfDefined "$MAGENTO_DB_INIT_STATEMENTS" "db-init-statements"
+    addAdditionalParamIfDefined "$MAGENTO_SALES_ORDER_INCREMENT_PREFIX" "sales-order-increment-prefix"
+
+    su www-data -s /bin/bash -c "$INSTALL_COMMAND_LINE"
+    echo "$(date)" > "/var/www/html/magento2/installed.log"
+fi
+
+apachectl stop
+
+rm -f /run/apache2/apache2.pid
+
+exec apachectl -DFOREGROUND -e info
