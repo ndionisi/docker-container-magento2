@@ -30,7 +30,7 @@ The following variables can be defined to customize the installation:
 |`MAGENTO_ADMIN_PASSWORD`|`--admin-password`|magento2|
 |`MAGENTO_BASE_URL`|`--base-url`|-|
 |`MAGENTO_BACKEND_FRONTNAME`|`--backend-frontname`|admin|
-|`MAGENTO_DB_HOST`|`--db-host`|msqyl|
+|`MAGENTO_DB_HOST`|`--db-host`|mysql|
 |`MAGENTO_DB_NAME`|`--db-name`|magento2|
 |`MAGENTO_DB_USER`|`--db-user`|magento2|
 |`MAGENTO_DB_PASSWORD`|`--db-password`|magento2|
